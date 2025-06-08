@@ -51,10 +51,11 @@ function PANEL:PerformLayout(w, h)
 end
 
 function PANEL:GetRowForPlayer(ply)
+  print(ply)
+  print("")
+  PrintTable(self.rows)
   return self.rows[ply]
 end
-
-vgui.Register("BetterInfoPanel", PANEL, "DPanel")
 
 timer.Simple(1, function()
     if IsValid(BetterInfoPanel) then
@@ -64,3 +65,13 @@ timer.Simple(1, function()
     BetterInfoPanel = vgui.Create("BetterInfoPanel")
 end)
 
+
+-- DEBUG
+hook.Add("PlayerButtonDown", "BetterInfo_TestAddIcon", function(ply, button)
+    if button == KEY_I and BetterInfoPanel then
+        local row = BetterInfoPanel:GetRowForPlayer(ply)
+        if IsValid(row) then
+            row:AddIcon("icon16/heart.png")
+        end
+    end
+end)

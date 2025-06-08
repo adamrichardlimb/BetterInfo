@@ -57,6 +57,14 @@ function PANEL:PerformLayout(w, h)
     self:SizeToChildren(true, true)
 end
 
+function PANEL:AddIcon(mat)
+    local icon = vgui.Create("DImage", self)
+    icon:SetSize(16, 16)
+    icon:SetImage(mat or "icon16/star.png") -- fallback icon
+    table.insert(self.icons, icon)
+    self:InvalidateLayout()
+end
+
 function PANEL:Paint(w, h)
     surface.SetDrawColor(40, 40, 40, 200)
     surface.DrawRect(8, 0, w, h)
