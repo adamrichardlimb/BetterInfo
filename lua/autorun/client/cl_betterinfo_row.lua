@@ -1,25 +1,18 @@
 print("Included BetterInfoRow")
 
 local PANEL = {}
+local skip_keys = {nick=true, dmg=true}
 
 function PANEL:Init()
     self.avatar = vgui.Create("AvatarImage", self)
     self.avatar:SetSize(32, 32)
-
+    self.role_colour = Color(0,255,0)
     self.name = vgui.Create("DLabel", self)
     self.name:SetFont("DermaDefaultBold")
     self.name:SetText("Player")
     self.name:SetTextColor(color_white)
 
-    self.icons = {}
-    local icon_count = math.random(0, 4)
-    for i = 1, icon_count do
-        local icon = vgui.Create("DImage", self)
-        icon:SetSize(16, 16)
-        icon:SetImage("icon16/star.png")-- Replace with your icon path
-        table.insert(self.icons, icon)
-        --icon:SetTooltip("Hello, world!")
-    end
+    self.icons = {} 
 end
 
 function PANEL:SetPlayer(ply)
@@ -57,6 +50,24 @@ function PANEL:PerformLayout(w, h)
     self:SizeToChildren(true, true)
 end
 
+function PANEL:AddSearchResults(search_results)
+  if not self.search_results then
+    for title, entry in pairs(search_results) do
+      if not skip_keys[title] then
+          -- Change role colour
+          if title == "role" then
+            local upper = string.upper(entry["text"])
+            if string.find(upper, "TRAITOR") then self.role_colour = Color(255, 0, 0)
+            elseif string.find(upper, "DETECTIVE") then self.role_colour = Color(0,0,255)
+            end
+          else self:AddIcon(entry["img"])
+          end
+      end
+    end
+    self.search_results = search_results
+  end
+end
+
 function PANEL:AddIcon(mat)
     local icon = vgui.Create("DImage", self)
     icon:SetSize(16, 16)
@@ -68,7 +79,7 @@ end
 function PANEL:Paint(w, h)
     surface.SetDrawColor(40, 40, 40, 200)
     surface.DrawRect(8, 0, w, h)
-    draw.RoundedBoxEx(8, 0, 0, 8, h, Color(0, 255, 0, 255), true, false, true, false)
+    draw.RoundedBoxEx(8, 0, 0, 8, h, self.role_colour, true, false, true, false)
 end
 
 vgui.Register("BetterInfoRow", PANEL, "DPanel")

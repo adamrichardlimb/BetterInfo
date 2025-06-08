@@ -2,16 +2,8 @@ include("autorun/client/cl_betterinfo_row.lua")
 
 local PANEL = {}
 
-hook.Add("TTTBodySearchPopulate", "read_tables", function(proc, raw)
-  print("Processed")
-  PrintTable(proc)
-
-  print("Raw")
-  PrintTable(rw)
-end)
-
 function PANEL:Init()
-    local max_players = 2
+    local max_players = 24
     local padding = 20
     local spacing = 6
     local screen_height = ScrH()
@@ -28,9 +20,9 @@ function PANEL:Init()
 
     self.rows = {}
 
-    for _, ply in ipairs(player.GetAll()) do
+    for _, ply in player.Iterator() do
         local row = vgui.Create("BetterInfoRow", self.scroll)
-        row:SetPlayer(LocalPlayer())-- replace later
+        row:SetPlayer(ply)-- replace later
         self.rows[ply] = row
     end
 end
@@ -51,11 +43,10 @@ function PANEL:PerformLayout(w, h)
 end
 
 function PANEL:GetRowForPlayer(ply)
-  print(ply)
-  print("")
-  PrintTable(self.rows)
   return self.rows[ply]
 end
+
+vgui.Register("BetterInfoPanel", PANEL, "DPanel")
 
 timer.Simple(1, function()
     if IsValid(BetterInfoPanel) then
@@ -65,13 +56,15 @@ timer.Simple(1, function()
     BetterInfoPanel = vgui.Create("BetterInfoPanel")
 end)
 
-
--- DEBUG
-hook.Add("PlayerButtonDown", "BetterInfo_TestAddIcon", function(ply, button)
-    if button == KEY_I and BetterInfoPanel then
-        local row = BetterInfoPanel:GetRowForPlayer(ply)
-        if IsValid(row) then
-            row:AddIcon("icon16/heart.png")
-        end
-    end
+hook.Add("TTTBodySearchPopulate", "read_tables", function(proc, raw)
+  if IsValid(BetterInfoPanel) then
+    local dead_player = raw["owner"]
+    --Check if we have a row
+    local player_row = BetterInfoPanel:GetRowForPlayer(dead_player)
+    if not IsValid(player_row) then return end 
+    
+    player_row:AddSearchResults(proc)
+    PrintTable(raw)
+    PrintTable(proc)
+  end
 end)
