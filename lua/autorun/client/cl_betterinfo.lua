@@ -2,8 +2,16 @@ include("autorun/client/cl_betterinfo_row.lua")
 
 local PANEL = {}
 
+hook.Add("TTTBodySearchPopulate", "read_tables", function(proc, raw)
+  print("Processed")
+  PrintTable(proc)
+
+  print("Raw")
+  PrintTable(rw)
+end)
+
 function PANEL:Init()
-    local max_players = 24
+    local max_players = 2
     local padding = 20
     local spacing = 6
     local screen_height = ScrH()
@@ -20,10 +28,10 @@ function PANEL:Init()
 
     self.rows = {}
 
-    for i = 1, max_players do
+    for _, ply in ipairs(player.GetAll()) do
         local row = vgui.Create("BetterInfoRow", self.scroll)
         row:SetPlayer(LocalPlayer())-- replace later
-        table.insert(self.rows, row)
+        self.rows[ply] = row
     end
 end
 
@@ -34,7 +42,7 @@ function PANEL:PerformLayout(w, h)
     local canvas = self.scroll:GetCanvas()
     local canvas_width = canvas:GetWide()
 
-    for _, row in ipairs(self.rows) do
+    for _, row in pairs(self.rows) do
         row:SizeToContents()
         local rw, rh = row:GetSize()
         row:SetPos(canvas_width - rw, y)
@@ -42,6 +50,9 @@ function PANEL:PerformLayout(w, h)
     end
 end
 
+function PANEL:GetRowForPlayer(ply)
+  return self.rows[ply]
+end
 
 vgui.Register("BetterInfoPanel", PANEL, "DPanel")
 
