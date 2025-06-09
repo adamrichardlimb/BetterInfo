@@ -61,10 +61,8 @@ hook.Add("TTTBodySearchPopulate", "read_tables", function(proc, raw)
     local dead_player = raw["owner"]
     --Check if we have a row
     local player_row = BetterInfoPanel:GetRowForPlayer(dead_player)
-    if not IsValid(player_row) then return end 
-    
-    player_row:AddSearchResults(proc)
+    if not IsValid(player_row) then return end
+    player_row:AddSearchResults(raw)
     PrintTable(raw)
-    PrintTable(proc)
   end
 end)
