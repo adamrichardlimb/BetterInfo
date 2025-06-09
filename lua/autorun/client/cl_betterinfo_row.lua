@@ -30,12 +30,20 @@ function PANEL:PerformLayout(w, h)
     local x = padding
     local tallest = 0
 
+    -- Layout avatar label
     self.avatar_label:SizeToContents()
     self.avatar_label:SetPos(x, 0)
     x = x + self.avatar_label:GetWide() + 8
     tallest = math.max(tallest, self.avatar_label:GetTall())
 
-    for _, icon in ipairs(self.icons) do
+    -- Layout icons, removing invalid ones
+    for i = #self.icons, 1, -1 do
+        local icon = self.icons[i]
+        if not IsValid(icon) then
+            table.remove(self.icons, i)
+            continue
+        end
+
         icon:SizeToContents()
         icon:SetPos(x, 0)
         x = x + icon:GetWide() + 4
@@ -43,6 +51,11 @@ function PANEL:PerformLayout(w, h)
     end
 
     self:SetSize(x + padding, tallest)
+end
+
+local function FindNickFromIDX(last_id)
+  local player = Entity(last_id)
+  return player:Nick()
 end
 
 function PANEL:AddSearchResults(search_results_raw)
@@ -55,15 +68,73 @@ function PANEL:AddSearchResults(search_results_raw)
     -- Show either the weapon that killed them or cause of death
     local cause_of_death = self:FindCauseOfDeath(search_results_raw["wep"], search_results_raw["dmg"])
     self:AddIconWithText(cause_of_death["icon"], cause_of_death["text"])
-    -- Add all non-optional info 
+    -- Add all non-optional info
     -- DNA
+    local remaining_dna = search_results_raw["stime"]
+    if remaining_dna > 0 then
+      local p = self:AddTimeText(remaining_dna)
+      p:SetImage("icon16/error.png")
+      p:SetCountdownMode(true)
+    end
     -- Last Seen
+    -- This is a table with idx in it with 0 signifying no-one
+    local last_id = search_results_raw["lastid"]["idx"]
+    if last_id ~= 0 then self:AddIconWithText("icon16/eye.png", FindNickFromIDX(last_id)) end
+
     -- Last Words
+    local last_words = search_results_raw["words"]
+    if words then self:AddIconWithText("icon16/keyboard.png", last_words) end
+    
+    -- Headshot
+    local headshot = search_results_raw["head"]
+    if headshot then self:AddIconWithText("icon16/cross.png", "Headshot") end
+
     -- Equipment
+    self:CreateEquipmentIcons(search_results_raw["eq_armor"], search_results_raw["eq_disg"], search_results_raw["eq_radar"], search_results_raw["c4"])
+
     -- Kills
+    local kills = search_results_raw["kills"]
+    if kills then self:AddIconWithText("icon16/cross.png", #kills) end
   end
   --self.search_results = search_results_raw
 end
+
+function PANEL:CreateEquipmentIcons(armour, disguise, radar, c4)
+  if not (armour or disguise or radar or (c4~= 0)) then return end
+
+  local grid = vgui.Create("DGrid", self)
+  grid:SetCols(2)
+  grid:SetColWide(16)
+  grid:SetRowHeight(16)
+
+  if armour then
+    local armour_icon = vgui.Create("DImage")
+    armour_icon:SetImage("icon16/accept.png")
+    armour_icon:SetSize(16,16)
+    grid:AddItem(armour_icon)
+  end
+  if disguise then
+    local disguise_icon = vgui.Create("DImage")
+    disguise_icon:SetImage("icon16/accept.png")
+    disguise_icon:SetSize(16,16)
+    grid:AddItem(disguise_icon)
+  end
+  if radar then
+    local radar_icon = vgui.Create("DImage")
+    radar_icon:SetImage("icon16/accept.png")
+    radar_icon:SetSize(16,16)
+    grid:AddItem(radar_icon)
+  end
+  if c4 ~= 0 then
+    local c4_icon = vgui.Create("DImage")
+    c4_icon:SetImage("icon16/accept.png")
+    c4_icon:SetSize(16,16)
+    grid:AddItem(c4_icon)
+  end
+  table.insert(self.icons, grid)
+  self:InvalidateLayout()
+end
+
 
 local function GetWeaponName(classname)
   local wep = weapons.GetStored(classname)
@@ -127,6 +198,7 @@ function PANEL:AddTimeText(time)
   p:SetTime(time)
   table.insert(self.icons, p)
   self:InvalidateLayout()
+  return p
 end
 
 function PANEL:AddIconWithText(mat, text)

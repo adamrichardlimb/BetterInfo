@@ -25,7 +25,7 @@ function PANEL:PerformLayout(w, h)
     self.icon:SetPos((w - self.icon:GetWide()) / 2, 0)
     self.label:SetPos((w - self.label:GetWide()) / 2, self.icon:GetTall() + 2)
     self:SetWide(math.max(self.icon:GetWide(), self.label:GetWide()))
-    self:SetTall(self.icon:GetTall() + 2 + self.label:GetTall())    
+    self:SetTall(self.icon:GetTall() + 2 + self.label:GetTall())
 end
 
 vgui.Register("IconWithText", PANEL, "DPanel")
