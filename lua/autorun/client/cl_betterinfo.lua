@@ -144,6 +144,21 @@ end
 
 function PANEL:UpdateRows()
     local changed = false
+    local any_animating = false
+
+    for ply, row in pairs(self.rows) do
+      if row._is_animating then
+        print(row)
+        print("something is animating")
+        any_animating = true
+      end
+
+      if row.pending_search_results and not row._is_animating then
+        row:ApplySearchResults(row.pending_search_results)
+        row.pending_search_results = nil
+        changed = true
+      end
+    end
 
     for _, ply in ipairs(player.GetAll()) do
         if not IsValid(ply) then continue end
@@ -179,7 +194,11 @@ function PANEL:UpdateRows()
         end
     end
 
-    if changed then
+    if changed and any_animating then
+      print("Changed but waiting on animations to end")
+    end
+
+    if changed and not any_animating then
         self:InvalidateLayout()
     end
 end
@@ -208,7 +227,6 @@ hook.Add("TTTBodySearchPopulate", "read_tables", function(proc, raw)
     local player_row = BetterInfoPanel:GetRowForPlayer(dead_player)
     if not IsValid(player_row) then return end
     player_row:AddSearchResults(raw)
-    PrintTable(raw)
   end
 end)
 
