@@ -53,6 +53,19 @@ function PANEL:PerformLayout(w, h)
     self:SetSize(x + padding, tallest)
 end
 
+function PANEL:ResetRow()
+  self.search_results = nil
+  self.role_colour = Color(0, 255, 0)
+
+  for _, icon in pairs(self.icons) do
+    icon:Remove()
+  end
+  self.icons = {}
+
+  print("Reset row!")
+  self:InvalidateLayout()
+end
+
 local function FindNickFromIDX(last_id)
   local player = Entity(last_id)
   return player:Nick()

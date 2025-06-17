@@ -38,10 +38,13 @@ function PANEL:Init()
         row:SetPlayer(fake_ply)
         self.rows[fake_ply] = row
     end
+
+    self.slideState = "in"
 end
 
 function PANEL:PerformLayout(w, h)
     local y = 0
+    local spacing = 10
     local canvas = self.scroll:GetCanvas()
     local canvas_width = canvas:GetWide()
 
@@ -98,7 +101,7 @@ function PANEL:PerformLayout(w, h)
               row:SetPos(target_x, target_y)
           end
 
-          y = y + rh
+          y = y + rh + spacing
       end
     end
 end
@@ -108,8 +111,20 @@ function PANEL:GetRowForPlayer(ply)
   return self.rows[ply]
 end
 
-function PANEL:ToggleSlide()
-    self.slideState = self.slideState or "out"
+function PANEL:ToggleSlide(desired_slide)
+    if desired_slide then
+      if desired_slide == "in" then 
+        self.slideState = "out"
+      elseif desired_slide == "out" then 
+        self.slideState = "in"
+      else
+        print("[BetterInfo] Bad slide state given to ToggleSlide. Valid values are 'out' and 'in', defaulting to current state.")
+        self.slideState = self.slideState or "out"
+      end
+    else 
+      self.slideState = self.slideState or "out"
+    end
+
     local targetX
     local duration = 0.3
     local startTime = CurTime()
@@ -234,4 +249,38 @@ hook.Add("PlayerButtonDown", "ToggleBetterInfoPanel", function(ply, button)
     if button == KEY_F6 and IsValid(BetterInfoPanel) then
         BetterInfoPanel:ToggleSlide()
     end
+end)
+
+function PANEL:ClearAllResults()
+
+  print("Clear!")
+  PrintTable(self.rows)
+  for _, row in pairs(self.rows) do
+    print("Resettomg")
+    row:ResetRow()
+  end
+end
+
+-- Slide out when round ends or when preparing
+-- We slide out when preparing in the event of a round restart
+hook.Add("TTTPrepareRound", "HideBeforeRound", function ()
+  
+  print("preparing")
+  if IsValid(BetterInfoPanel) then 
+    BetterInfoPanel:ToggleSlide("out")
+    print("valid")
+    -- Clear all search results
+    BetterInfoPanel:ClearAllResults()
+  end
+end)
+hook.Add("TTTEndRound", "HideAfterRound", function ()
+  if IsValid(BetterInfoPanel) then 
+    BetterInfoPanel:ToggleSlide("out") 
+    BetterInfoPanel:ClearAllResults()
+  end
+end)
+
+-- Slide in when round begins and roles selected
+hook.Add("TTTBeginRound", "SlideInOnRoundStart", function ()
+  if IsValid(BetterInfoPanel) then BetterInfoPanel:ToggleSlide("in") end
 end)
