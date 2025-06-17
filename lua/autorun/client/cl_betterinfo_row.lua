@@ -96,7 +96,7 @@ function PANEL:AddSearchResults(search_results_raw)
     local kills = search_results_raw["kills"]
     if kills then self:AddIconWithText("icon16/cross.png", #kills) end
   end
-  --self.search_results = search_results_raw
+  self.search_results = search_results_raw
 end
 
 function PANEL:CreateEquipmentIcons(armour, disguise, radar, c4)
